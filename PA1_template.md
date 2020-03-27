@@ -7,9 +7,7 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 ## Analysis on data from a personal activity monitoring device.
 
@@ -21,7 +19,8 @@ This document contains the R code, explanantion and the results for the question
   
 1. Loading and preprocessing the data  
 
-```{r}
+
+```r
 unzip("activity.zip",exdir = "data")
 activityOriginal <- read.csv("data/activity.csv")
 ```
@@ -34,7 +33,8 @@ Create a logical vector based on NA on the "steps" field and
 Create a new data frame excluding the NA values.  
 
 
-```{r}
+
+```r
 activityOriginal$date <- as.Date(activityOriginal[,2])
 NAs <- is.na(activityOriginal$steps)
 activityData <- activityOriginal[!NAs,]
@@ -47,17 +47,19 @@ activityData <- activityOriginal[!NAs,]
 1. Calculate the total number of steps taken per day and store 
 in a new data frame.
 
-```{r}
+
+```r
 activityByDate <- setNames(aggregate(activityData$steps, 
                                      list(activityData$date), 
                                      sum),c("date","TotalSteps"))
-```  
+```
   
   
   
 2. prepare a histogram of total number of steps taken each day  
 
-```{r}
+
+```r
 hist(activityByDate$TotalSteps,
      main="Histogram : Total Steps per Day",
      xlab="Steps",
@@ -65,15 +67,28 @@ hist(activityByDate$TotalSteps,
      las = 1)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 
 3. Mean and median of the total number of steps taken per day  
 
-```{r}
 
+```r
 summary(activityByDate$TotalSteps)[4]
+```
 
+```
+##     Mean 
+## 10766.19
+```
+
+```r
 summary(activityByDate$TotalSteps)[3]
+```
 
+```
+## Median 
+##  10765
 ```
 
 ### C. What is the average daily activity pattern?
@@ -83,23 +98,32 @@ summary(activityByDate$TotalSteps)[3]
 
    This can be done by first running the mean function by aggregating based on the intervals and stroing the result data frame in a new variable.
 
-```{r}
+
+```r
 meanByInterval <- setNames(aggregate(activityData$steps, 
                                      list(activityData$interval), 
                                      mean),c("interval","Steps")) 
 ```
    Ploting the data.
-```{r}
+
+```r
 plot(meanByInterval, type="l", col="blue",
      main= "Time series of Average steps taken on a day", 
      las=1, xlab="Interval (mins)", ylab="Steps taken" )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
 
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-```{r}
+
+```r
 meanByInterval$interval[meanByInterval$Steps==(max(meanByInterval$Steps))]
+```
+
+```
+## [1] 835
 ```
    
    
@@ -111,9 +135,14 @@ meanByInterval$interval[meanByInterval$Steps==(max(meanByInterval$Steps))]
 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs
    The required data is avaiable in vector NAs (refer A.2). This can be used to get the count.
    
-```{r}
+
+```r
    NAsCount <- length(NAs[NAs==TRUE])
    print(NAsCount)
+```
+
+```
+## [1] 2304
 ```
 
 
@@ -130,7 +159,8 @@ meanByInterval$interval[meanByInterval$Steps==(max(meanByInterval$Steps))]
 
 
 
-```{r echo=TRUE, message=FALSE}
+
+```r
 library(dplyr)
 
 activityImputNAs <- activityOriginal
@@ -138,7 +168,6 @@ activityImputNAs <- activityOriginal
 AverageForNAs <- full_join(activityImputNAs, meanByInterval, by="interval" )[,4]
 
 activityImputNAs$steps[NAs==TRUE] <- round(AverageForNAs[NAs],0)
-
 ```
 
 
@@ -147,30 +176,40 @@ activityImputNAs$steps[NAs==TRUE] <- round(AverageForNAs[NAs],0)
    
    * Calculate the total number of steps taken per day using the imputed data. 
 
-```{r}
 
+```r
 activityByDateNA <- setNames(aggregate(activityImputNAs$steps, 
                                        list(activityImputNAs$date), 
                                        sum),c("date","TotalSteps"))
-
 ```
    
    
    * Mean and median of the total number of steps taken per day using the imputed data. 
 
-```{r}
 
+```r
 summary(activityByDateNA$TotalSteps)[4]
+```
 
+```
+##     Mean 
+## 10765.64
+```
+
+```r
 summary(activityByDateNA$TotalSteps)[3]
+```
 
+```
+## Median 
+##  10762
 ```
 
    * prepare a histogram of total number of steps taken each day using the imputed data for comparison against the original data.
 
 ##### Histograms for comparing Total Steps per Day between the original and imputed data.
-```{r echo=TRUE, message=FALSE}
 
+```r
 par(mfrow = c(1,2))
 
 hist(activityByDate$TotalSteps,
@@ -187,8 +226,9 @@ hist(activityByDateNA$TotalSteps,
      las = 1,
      ylim=c(0,40)
      )
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 
 ### E. Are there differences in activity patterns between weekdays and weekends?
@@ -201,23 +241,23 @@ hist(activityByDateNA$TotalSteps,
    * Using vector "WDcalday" create a logical vector which will have "TRUE" for weekends and "FALSE" for weekdays.
    * Create new column "wdfactor" in data frame "activityData" and assign values "weekday" or "weekend" based on the logical vector "WDLogical"
    
-```{r}
+
+```r
 WDcalday  <- weekdays(activityData$date)
 WDLogical <- WDcalday=="Saturday" | WDcalday=="Sunday"
 
 activityData$wdfactor[WDLogical]  <- "weekend"
 activityData$wdfactor[!WDLogical] <- "weekday"
-
 ```
 
    * Prepare the data and histograms for the weekday and weekend mean data for comparison.
-```{r}
 
+```r
 library(lattice)
 
 activityDataWDSplit <- aggregate(steps~interval+wdfactor, data = activityData, mean)
 
 xyplot(steps ~ interval | wdfactor, data = activityDataWDSplit, layout = c(1,2), type = "l")
-
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
